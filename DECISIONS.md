@@ -21,6 +21,7 @@ Registro de las decisiones tomadas durante la jornada, con su razón y su costo.
 - [D13. `client_msg_id` para idempotencia](#d13)
 - [D14. El costo del copiloto se almacena, no se deriva](#d14)
 - [D15. Las vistas de contrato exigen `security_invoker = true`](#d15)
+- [D16. El proveedor falso de IA usa hashing de palabras, no ruido puro](#d16)
 - [Recortes de alcance](#recortes)
 
 ---
@@ -219,6 +220,19 @@ Es **parcial** porque los mensajes del corpus semilla no tienen `client_msg_id`,
 
 ---
 
+<a id="d16"></a>
+## D16. El proveedor falso de IA usa hashing de palabras, no ruido puro
+
+**Decisión.** `FakeAiProvider.embed()` (usado cuando `AI_PROVIDER=fake`, y por defecto en tests) no genera un vector aleatorio: proyecta cada palabra del texto a una dimensión y un signo por hash (*feature hashing*), y el vector final es la suma normalizada.
+
+**Cómo se encontró.** La primera versión sí generaba ruido puro a partir de un hash del texto completo. Al probar el flujo de extremo a extremo con el worker de embeddings ya corriendo, el copiloto respondía `no_context` sin importar la pregunta — incluso para preguntas con vocabulario calcado de mensajes reales del corpus. La causa: la similitud de coseno entre vectores aleatorios de 1536 dimensiones se concentra alrededor de cero por pura estadística, así que nunca superaba el umbral. La ruta "responde con citas" era, en la práctica, indemostrable con el proveedor falso.
+
+**La corrección.** Con *feature hashing*, dos textos que comparten palabras producen vectores con un parecido medible; textos sin relación, no. No es semántica real (no entiende sinónimos), pero es suficiente para que el ranking por similitud tenga sentido en la demo y en los tests, sin tocar la red ni depender de una API key.
+
+**Por qué importa para la seguridad, no solo para la demo.** Esto permitió una prueba mucho más convincente que "no hay resultados": se le preguntó al copiloto por el ajuste salarial y el presupuesto de infraestructura discutidos en `junta-directiva` usando ese vocabulario exacto — con embeddings donde ese parecido léxico SÍ se refleja en similitud — y el canal siguió sin aparecer entre las citas. La exclusión es por membresía, no por casualidad de que el contenido no fuera parecido (ver `backend/tests/security.integration.test.ts`).
+
+---
+
 <a id="recortes"></a>
 ## Recortes de alcance
 
@@ -230,6 +244,7 @@ Es **parcial** porque los mensajes del corpus semilla no tienen `client_msg_id`,
 2. **Edición de mensajes → solo borrado lógico.** `rw_message_revisions` se conserva porque el borrado también escribe en ella.
 3. **Swagger publicado → colección Postman exportada.** El contrato se entrega igual, en otro formato.
 4. **i18n exhaustivo → solo las cadenas visibles de las tres zonas.** La infraestructura de i18next queda completa; lo que se recorta es cobertura de traducción, no capacidad.
+5. **Worker de embeddings en su propio contenedor → intervalo dentro del proceso del servidor.** Ya usa su propio rol (`rw_worker`) y su propia conexión, con los mismos límites de columna que tendría en un proceso separado; lo único que cambiaría en un empaquetado más adelante es moverlo a su propio `Dockerfile`, no su diseño.
 
 **Lo que no se recorta bajo ninguna circunstancia**, por ser criterio de aceptación o condición de invalidación:
 

@@ -1,0 +1,122 @@
+openapi: 3.0.3
+info:
+  title: Riwi Messaging API
+  version: 1.0.0
+  description: Plataforma de mensajeria interna con copiloto RAG. Ver
+    ARCHITECTURE.md para el diseño completo.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas: {}
+paths:
+  /auth/login:
+    post:
+      responses:
+        "200":
+          description: Default Response
+  /auth/refresh:
+    post:
+      responses:
+        "200":
+          description: Default Response
+  /auth/logout:
+    post:
+      responses:
+        "200":
+          description: Default Response
+  /me:
+    get:
+      responses:
+        "200":
+          description: Default Response
+    patch:
+      responses:
+        "200":
+          description: Default Response
+    delete:
+      responses:
+        "200":
+          description: Default Response
+  /channels:
+    get:
+      responses:
+        "200":
+          description: Default Response
+  /channels/{channelId}/messages:
+    get:
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: channelId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+    post:
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: channelId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /channels/{channelId}/read:
+    post:
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: channelId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /messages/{messageId}:
+    patch:
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: messageId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+    delete:
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: messageId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /search:
+    get:
+      responses:
+        "200":
+          description: Default Response
+  /copilot/ask:
+    post:
+      responses:
+        "200":
+          description: Default Response
+  /copilot/usage:
+    get:
+      responses:
+        "200":
+          description: Default Response
+  /health:
+    get:
+      responses:
+        "200":
+          description: Default Response
+servers:
+  - url: /api/v1

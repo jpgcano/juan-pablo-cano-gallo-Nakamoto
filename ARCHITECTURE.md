@@ -181,6 +181,8 @@ El envío de un mensaje ilustra el patrón completo. En una sola transacción se
 
 El segundo implementa un **outbox**: el embedding se calcula fuera de la transacción del usuario. Si se llamara a OpenAI dentro, la latencia de un tercero bloquearía el envío de un mensaje y una caída de su API impediría escribir.
 
+Del lado del backend, `main/embeddingWorker.ts` es quien consume ese outbox: sondea `rw_message_embeddings` cada pocos segundos, llama `AiProvider.embed()` sobre lo pendiente y escribe el vector de vuelta. Se conecta con el rol `rw_worker` (`database/migrations/000_extensions_and_roles.sql`), no con `rw_app`, y ese rol solo tiene `SELECT (id, body)` sobre `rw_messages` — nunca `sender_id` ni `channel_id`. Corre como un intervalo dentro del mismo proceso del servidor en vez de un contenedor aparte, una simplificación de alcance para la ventana de 8 horas (documentada en DECISIONS.md); el aislamiento real ya está en el rol y la conexión, no en el empaquetado.
+
 ### Vista y procedimientos
 
 - `rw_v_user_conversations` — la vista de conversaciones del usuario.

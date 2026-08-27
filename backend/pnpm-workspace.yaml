@@ -1,0 +1,6 @@
+# No define "packages": no es un workspace de multiples paquetes (ver
+# DECISIONS.md D2). Solo configuracion local de build scripts.
+allowBuilds:
+  argon2: true
+  esbuild: true
+  unrs-resolver: true
