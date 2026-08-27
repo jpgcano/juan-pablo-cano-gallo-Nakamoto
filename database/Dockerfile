@@ -1,3 +1,13 @@
+FROM node:20-alpine AS migrator
+WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@9.15.5 --activate
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY tsconfig.json ./
+COPY migrations ./migrations
+COPY scripts ./scripts
+COPY seed ./seed
+
 FROM pgvector/pgvector:pg16
 
 # La imagen base ya trae PostgreSQL 16 y la extension pgvector compilada.
