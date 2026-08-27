@@ -40,7 +40,11 @@ export class RefreshUseCase {
         throw new UnauthorizedError('Refresh token expirado');
       }
 
-      await this.repository.revokeRefreshToken(client, existing.id);
+      const revoked = await this.repository.revokeRefreshToken(client, existing.id);
+      if (!revoked) {
+        await this.repository.revokeRefreshTokenFamily(client, existing.familyId);
+        throw new UnauthorizedError('Refresh token reutilizado: la sesion completa fue revocada');
+      }
 
       const newRefreshToken = this.tokenService.generateRefreshToken();
       const refreshExpiresAt = new Date(Date.now() + this.refreshTtlDays * 24 * 60 * 60 * 1000);

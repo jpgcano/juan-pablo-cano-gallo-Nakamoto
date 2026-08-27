@@ -46,7 +46,7 @@ export interface IdentityRepository {
     input: { userId: string; tokenHash: string; familyId: string; rotatedFrom: string | null; expiresAt: Date },
   ): Promise<RefreshTokenRecord>;
   findRefreshTokenByHash(client: Queryable, tokenHash: string): Promise<RefreshTokenRecord | null>;
-  revokeRefreshToken(client: Queryable, id: string): Promise<void>;
+  revokeRefreshToken(client: Queryable, id: string): Promise<boolean>;
   revokeRefreshTokenFamily(client: Queryable, familyId: string): Promise<void>;
 
   updateProfile(

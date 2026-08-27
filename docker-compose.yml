@@ -31,7 +31,7 @@ services:
       migrate:
         condition: service_completed_successfully
     ports:
-      - '${PORT:-3000}:3000'
+      - '${HOST_PORT:-3000}:3000'
     healthcheck:
       test: ['CMD-SHELL', 'wget -q -O - http://127.0.0.1:3000/health > /dev/null']
       interval: 10s
@@ -61,7 +61,7 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - '5173:80'
+      - '${FRONTEND_PORT:-5173}:80'
 
 volumes:
   postgres_data:
