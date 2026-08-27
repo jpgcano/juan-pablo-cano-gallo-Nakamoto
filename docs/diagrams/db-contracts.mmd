@@ -1,0 +1,51 @@
+---
+title: Propiedad de tablas y contratos publicados entre modulos
+---
+flowchart TB
+    subgraph identity_own["identity - tablas propias"]
+        t_users[("rw_users")]
+        t_tokens[("rw_refresh_tokens")]
+    end
+
+    subgraph messaging_own["messaging - tablas propias"]
+        t_channels[("rw_channels")]
+        t_members[("rw_channel_members")]
+        t_messages[("rw_messages")]
+        t_revisions[("rw_message_revisions")]
+        t_reads[("rw_message_reads")]
+        t_embeddings[("rw_message_embeddings")]
+    end
+
+    subgraph copilot_own["copilot - tablas propias"]
+        t_queries[("rw_copilot_queries")]
+        t_citations[("rw_copilot_citations")]
+    end
+
+    subgraph contracts["Contratos publicados - unico punto de cruce"]
+        v_profiles["rw_v_identity_profiles<br/>id, full_name, job_title, locale<br/>NUNCA password_hash"]
+        v_convos["rw_v_user_conversations<br/>canales del actor, ultimo mensaje,<br/>no leidos"]
+        v_corpus["rw_v_copilot_corpus<br/>mensajes vivos visibles para el actor"]
+        f_context["rw_fn_copilot_context<br/>busqueda semantica con<br/>permisos resueltos en SQL"]
+    end
+
+    t_users --> v_profiles
+    t_channels --> v_convos
+    t_messages --> v_convos
+    t_reads --> v_convos
+    t_messages --> v_corpus
+    t_embeddings --> f_context
+    v_corpus --> f_context
+
+    m_code["modulo messaging"] --> v_profiles
+    c_code["modulo copilot"] --> v_profiles
+    c_code --> f_context
+    c_code --> t_queries
+    c_code --> t_citations
+
+    blocked["El modulo copilot no tiene forma de nombrar rw_messages.<br/>La frontera del modulo y la defensa contra fuga de contexto<br/>son el mismo mecanismo."]
+
+    style contracts fill:#fff8e1,stroke:#f9a825,color:#5d4037
+    style blocked fill:#ffebee,stroke:#c62828,color:#b71c1c
+    style identity_own fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
+    style messaging_own fill:#e3f2fd,stroke:#1565c0,color:#0d47a1
+    style copilot_own fill:#f3e5f5,stroke:#6a1b9a,color:#4a148c

@@ -1,0 +1,33 @@
+---
+title: Propagacion del actor - del JWT a la politica RLS
+---
+sequenceDiagram
+    autonumber
+    actor U as Navegador
+    participant R as Ruta Fastify
+    participant A as Middleware auth
+    participant UC as Caso de uso
+    participant UW as UnitOfWork (shared)
+    participant PG as PostgreSQL (rol rw_app)
+
+    U->>R: GET /api/v1/channels/:id/messages<br/>Authorization: Bearer <access>
+    R->>A: verificar firma y expiracion
+    A-->>A: userId = payload.sub<br/>NUNCA se lee del body ni del query
+    A->>UC: ejecutar(userId, params)
+    UC->>UW: runAs(userId, fn)
+
+    UW->>PG: BEGIN
+    UW->>PG: SELECT set_config('app.current_user_id', $1, true)
+    Note over UW,PG: el tercer parametro true lo hace transaction-local:<br/>al terminar la transaccion el valor muere<br/>y no puede filtrarse a otro request del pool
+
+    UW->>PG: SELECT ... FROM rw_messages WHERE ...
+    PG-->>PG: politica RLS evalua<br/>rw_is_channel_member(channel_id)<br/>contra rw_current_user_id()
+    PG-->>UW: solo filas autorizadas
+    UW->>PG: COMMIT
+    UW-->>UC: filas
+    UC-->>R: DTO mapeado
+    R-->>U: 200 + X-Correlation-Id
+
+    rect rgb(255, 235, 238)
+        Note over A,PG: Si el middleware fallara y no se fijara el actor,<br/>rw_current_user_id() lanza excepcion y la consulta aborta.<br/>El modo inseguro por defecto es "no devolver nada".
+    end

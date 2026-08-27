@@ -1,0 +1,48 @@
+---
+title: Monolito modular del backend - fronteras permitidas
+---
+flowchart TB
+    http["interfaces HTTP<br/>Fastify + Socket.IO"]
+
+    subgraph modules["backend/src/modules"]
+        direction LR
+
+        subgraph identity["identity"]
+            id_api["index.ts<br/>superficie publica"]
+            id_in["domain / application<br/>infrastructure"]
+            id_api --- id_in
+        end
+
+        subgraph messaging["messaging"]
+            ms_api["index.ts<br/>superficie publica"]
+            ms_in["domain / application<br/>infrastructure"]
+            ms_api --- ms_in
+        end
+
+        subgraph copilot["copilot"]
+            cp_api["index.ts<br/>superficie publica"]
+            cp_in["domain / application<br/>infrastructure"]
+            cp_api --- cp_in
+        end
+    end
+
+    shared["shared - kernel TECNICO<br/>pool pg, UnitOfWork, errores,<br/>logger, config, correlacion<br/>CERO reglas de negocio"]
+
+    http --> id_api
+    http --> ms_api
+    http --> cp_api
+
+    cp_api -->|"perfil del actor"| id_api
+    ms_api -->|"perfil del remitente"| id_api
+
+    identity --> shared
+    messaging --> shared
+    copilot --> shared
+
+    forbidden["PROHIBIDO por ESLint:<br/>importar el interior de otro modulo<br/>meter reglas de negocio en shared<br/>importar fastify, pg u openai desde domain"]
+
+    style forbidden fill:#ffebee,stroke:#c62828,color:#b71c1c
+    style shared fill:#eceff1,stroke:#546e7a,color:#263238
+    style identity fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
+    style messaging fill:#e3f2fd,stroke:#1565c0,color:#0d47a1
+    style copilot fill:#f3e5f5,stroke:#6a1b9a,color:#4a148c

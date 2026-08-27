@@ -1,0 +1,26 @@
+---
+title: Capas dentro de un modulo - las dependencias apuntan al dominio
+---
+flowchart RL
+    subgraph mod["modules/messaging"]
+        direction RL
+
+        interfaces["interfaces/http<br/>rutas Fastify, esquemas Zod<br/>mapeo HTTP y codigos de estado"]
+        application["application<br/>casos de uso delgados:<br/>validar, invocar, mapear"]
+        domain["domain<br/>entidades, errores y PUERTOS<br/>MessageRepository, Clock<br/>SIN fastify, SIN pg"]
+        infrastructure["infrastructure<br/>adaptadores que invocan<br/>funciones y procedimientos SQL"]
+    end
+
+    interfaces -->|"depende de"| application
+    application -->|"depende de"| domain
+    infrastructure -->|"implementa los puertos de"| domain
+
+    main["main - composition root<br/>unico lugar que conoce<br/>las implementaciones concretas"]
+    main -.->|"inyecta"| infrastructure
+    main -.->|"registra"| interfaces
+
+    rule["Regla de oro: ninguna flecha sale del dominio.<br/>Cambiar Fastify por Express o pg por otro driver<br/>no toca una sola linea de domain ni de application."]
+
+    style domain fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
+    style rule fill:#fff8e1,stroke:#f9a825,color:#5d4037
+    style main fill:#eceff1,stroke:#546e7a,color:#263238

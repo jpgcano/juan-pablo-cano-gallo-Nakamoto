@@ -1,0 +1,41 @@
+---
+title: Ciclo de vida de un mensaje - cliente y servidor
+---
+stateDiagram-v2
+    direction TB
+
+    state "En el cliente" as cliente {
+        [*] --> pending: el usuario envia<br/>se genera client_msg_id
+        pending --> sent: 201 del servidor
+        pending --> failed: error de red o 5xx
+        failed --> pending: reintento con el MISMO client_msg_id
+        note right of failed
+            El indice unico parcial
+            (channel_id, client_msg_id)
+            hace el reintento idempotente:
+            reenviar no duplica.
+        end note
+    }
+
+    state "En el servidor" as servidor {
+        [*] --> active: rw_send_message valida<br/>membresia en la BD
+        active --> edited: rw_edit_message
+        edited --> edited: nueva edicion
+        active --> deleted: rw_soft_delete_message
+        edited --> deleted: rw_soft_delete_message
+
+        note right of edited
+            Antes de sobrescribir se inserta
+            rw_message_revisions con el cuerpo
+            anterior. El estado original nunca
+            se pierde, ni ante fallo.
+        end note
+
+        note right of deleted
+            deleted_at IS NOT NULL.
+            Borrado logico: la fila permanece,
+            el borrado fisico esta prohibido.
+        end note
+    }
+
+    sent --> active: el mensaje ya existe en la BD

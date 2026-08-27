@@ -1,0 +1,120 @@
+---
+title: Modelo Entidad Relacion - bd_juan_cano_nakamoto
+---
+erDiagram
+    rw_users ||--o{ rw_refresh_tokens : "emite"
+    rw_users ||--o{ rw_channels : "crea"
+    rw_users ||--o{ rw_channel_members : "pertenece"
+    rw_users ||--o{ rw_messages : "envia"
+    rw_users ||--o{ rw_message_revisions : "modifica"
+    rw_users ||--o{ rw_message_reads : "lee"
+    rw_users ||--o{ rw_copilot_queries : "consulta"
+
+    rw_channels ||--o{ rw_channel_members : "agrupa"
+    rw_channels ||--o{ rw_messages : "contiene"
+
+    rw_messages ||--o{ rw_messages : "responde_a"
+    rw_messages ||--o{ rw_message_revisions : "conserva"
+    rw_messages ||--o{ rw_message_reads : "acusa"
+    rw_messages ||--o| rw_message_embeddings : "indexa"
+    rw_messages ||--o{ rw_copilot_citations : "sustenta"
+
+    rw_copilot_queries ||--o{ rw_copilot_citations : "cita"
+
+    rw_users {
+        uuid id PK "gen_random_uuid()"
+        citext email UK "NOT NULL"
+        text password_hash "NOT NULL - argon2id"
+        text full_name "NOT NULL"
+        text job_title "NOT NULL - contexto del copiloto"
+        char locale "NOT NULL CHECK es|en"
+        boolean is_active "NOT NULL DEFAULT true"
+        timestamptz created_at "NOT NULL DEFAULT now()"
+        timestamptz updated_at "NOT NULL DEFAULT now()"
+    }
+
+    rw_refresh_tokens {
+        uuid id PK
+        uuid user_id FK "NOT NULL ON DELETE CASCADE"
+        text token_hash UK "NOT NULL - sha256, nunca el token"
+        uuid family_id "NOT NULL - agrupa la cadena de rotacion"
+        uuid rotated_from FK "NULL ON DELETE SET NULL"
+        timestamptz expires_at "NOT NULL"
+        timestamptz revoked_at "NULL"
+        timestamptz created_at "NOT NULL DEFAULT now()"
+    }
+
+    rw_channels {
+        uuid id PK
+        text slug UK "NOT NULL - indice unico parcial si no archivado"
+        text name "NOT NULL CHECK length 1..120"
+        text type "NOT NULL CHECK public|private|direct"
+        uuid created_by FK "NOT NULL ON DELETE RESTRICT"
+        boolean is_archived "NOT NULL DEFAULT false"
+        timestamptz created_at "NOT NULL DEFAULT now()"
+    }
+
+    rw_channel_members {
+        uuid id PK
+        uuid channel_id FK "NOT NULL ON DELETE CASCADE"
+        uuid user_id FK "NOT NULL ON DELETE CASCADE"
+        text role "NOT NULL CHECK owner|member"
+        timestamptz joined_at "NOT NULL DEFAULT now()"
+        timestamptz left_at "NULL - baja logica"
+    }
+
+    rw_messages {
+        uuid id PK
+        uuid channel_id FK "NOT NULL ON DELETE CASCADE"
+        uuid sender_id FK "NOT NULL ON DELETE RESTRICT"
+        uuid reply_to_id FK "NULL ON DELETE SET NULL"
+        text body "NOT NULL CHECK length 1..4000"
+        uuid client_msg_id "NULL - indice unico parcial por canal"
+        tsvector search_vector "mantenido por trigger"
+        timestamptz created_at "NOT NULL DEFAULT now()"
+        timestamptz edited_at "NULL"
+        timestamptz deleted_at "NULL - borrado logico"
+    }
+
+    rw_message_revisions {
+        uuid id PK
+        uuid message_id FK "NOT NULL ON DELETE CASCADE"
+        uuid edited_by FK "NOT NULL ON DELETE RESTRICT"
+        text previous_body "NOT NULL - estado original"
+        text reason "NOT NULL CHECK edit|delete"
+        timestamptz created_at "NOT NULL DEFAULT now()"
+    }
+
+    rw_message_reads {
+        uuid message_id PK,FK "ON DELETE CASCADE"
+        uuid user_id PK,FK "ON DELETE CASCADE"
+        timestamptz read_at "NOT NULL DEFAULT now()"
+    }
+
+    rw_message_embeddings {
+        uuid message_id PK,FK "ON DELETE CASCADE"
+        vector embedding "1536 dimensiones - NULL mientras stale"
+        text model "NOT NULL"
+        boolean is_stale "NOT NULL DEFAULT true - outbox"
+        timestamptz updated_at "NOT NULL DEFAULT now()"
+    }
+
+    rw_copilot_queries {
+        uuid id PK
+        uuid user_id FK "NOT NULL ON DELETE CASCADE"
+        text question "NOT NULL"
+        text answer "NOT NULL"
+        text outcome "NOT NULL CHECK answered|no_context|out_of_scope"
+        text prompt_version "NOT NULL"
+        integer tokens_in "NOT NULL CHECK >= 0"
+        integer tokens_out "NOT NULL CHECK >= 0"
+        numeric cost_usd "NOT NULL CHECK >= 0"
+        timestamptz created_at "NOT NULL DEFAULT now()"
+    }
+
+    rw_copilot_citations {
+        uuid query_id PK,FK "ON DELETE CASCADE"
+        uuid message_id PK,FK "ON DELETE CASCADE"
+        smallint rank "NOT NULL CHECK >= 1"
+        real similarity "NOT NULL"
+    }

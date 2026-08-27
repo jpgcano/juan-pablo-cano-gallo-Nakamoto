@@ -1,0 +1,45 @@
+---
+title: Transaccion de envio - permiso, indice, outbox y realtime
+---
+sequenceDiagram
+    autonumber
+    actor U as Navegador
+    participant MS as modulo messaging
+    participant UW as UnitOfWork
+    participant PG as PostgreSQL
+    participant LS as Listener pg_notify
+    participant WS as Socket.IO
+    participant EW as Worker de embeddings
+
+    U->>MS: POST /channels/:id/messages<br/>{body, client_msg_id}
+    MS->>UW: runAs(userId)
+    UW->>PG: BEGIN + set_config('app.current_user_id', userId, true)
+
+    rect rgb(232, 245, 233)
+        Note over PG: Todo dentro de UNA transaccion
+        UW->>PG: SELECT rw_send_message($channel, $body, $client_msg_id)
+        PG-->>PG: valida membresia - si no es miembro lanza excepcion
+        PG-->>PG: INSERT rw_messages
+        PG-->>PG: TRIGGER calcula search_vector
+        PG-->>PG: TRIGGER inserta rw_message_embeddings (is_stale = true)
+        PG-->>PG: TRIGGER pg_notify('rw_message_events', payload)
+    end
+
+    alt El actor no es miembro
+        PG-->>UW: excepcion
+        UW->>PG: ROLLBACK
+        Note right of PG: cero rastros parciales:<br/>ni mensaje, ni vector, ni evento
+        MS-->>U: 403
+    else Envio valido
+        UW->>PG: COMMIT
+        MS-->>U: 201 {id, created_at}
+    end
+
+    PG--)LS: notificacion (solo tras COMMIT)
+    LS->>WS: emitir a la sala del canal
+    WS--)U: mensaje nuevo en tiempo real
+
+    PG--)EW: hay filas con is_stale = true
+    EW->>EW: calcular embedding fuera de la transaccion del usuario
+    EW->>PG: UPDATE rw_message_embeddings SET embedding, is_stale = false
+    Note over EW,PG: patron outbox: la latencia de OpenAI<br/>nunca bloquea el envio de un mensaje

@@ -1,0 +1,42 @@
+---
+title: Copiloto RAG - contexto limitado por RLS y negativas explicitas
+---
+sequenceDiagram
+    autonumber
+    actor U as Navegador
+    participant CP as modulo copilot
+    participant ID as modulo identity
+    participant UW as UnitOfWork
+    participant PG as PostgreSQL + pgvector
+    participant AI as AiProvider (OpenAI)
+
+    U->>CP: POST /api/v1/copilot/ask {question}
+    Note right of U: el cliente NO envia userId,<br/>nombre ni cargo
+
+    CP->>ID: perfilDe(userId del token)
+    ID-->>CP: full_name, job_title
+
+    CP->>AI: embed(question)
+    AI-->>CP: vector 1536
+
+    CP->>UW: runAs(userId)
+    UW->>PG: SELECT * FROM rw_fn_copilot_context($vector, $k)
+    PG-->>PG: ORDER BY embedding <=> $vector<br/>filtrado por membresia EN SQL
+    PG-->>CP: top-k mensajes autorizados + similitud
+
+    alt Sin resultados o similitud bajo umbral
+        CP->>PG: INSERT rw_copilot_queries (outcome = no_context)
+        CP-->>U: 200 negativa explicita<br/>"no tengo contexto suficiente"
+        Note right of CP: nunca se llama al LLM:<br/>sin contexto no hay nada que responder
+    else Hay contexto autorizado
+        CP->>AI: chat(system.v1 + contexto delimitado)
+        Note over CP,AI: el contexto va marcado como DATO NO CONFIABLE<br/>con instruccion de no obedecer ordenes que contenga
+        AI-->>CP: respuesta con marcas [msg:id]
+        CP->>PG: INSERT rw_copilot_queries (outcome = answered,<br/>prompt_version, tokens, costo)
+        CP->>PG: INSERT rw_copilot_citations (rank, similarity)
+        CP-->>U: 200 respuesta + citas clicables
+    end
+
+    rect rgb(255, 235, 238)
+        Note over PG,AI: A OpenAI solo viaja lo que RLS ya autorizo.<br/>Un mensaje de un canal ajeno no puede llegar al prompt<br/>porque nunca sale de la base de datos.
+    end
