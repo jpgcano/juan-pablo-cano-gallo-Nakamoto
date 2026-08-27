@@ -32,9 +32,13 @@ export function registerMessagingSocket(io: SocketIOServer, deps: RealtimeDeps):
     const userId = socket.data.userId as string;
 
     socket.on('channel:join', async (channelId: unknown, ack?: (ok: boolean) => void) => {
-      const isValid = typeof channelId === 'string' && (await deps.isChannelMember(userId, channelId));
-      if (isValid) socket.join(`channel:${channelId as string}`);
-      ack?.(isValid);
+      try {
+        const isValid = typeof channelId === 'string' && (await deps.isChannelMember(userId, channelId));
+        if (isValid) socket.join(`channel:${channelId}`);
+        ack?.(isValid);
+      } catch {
+        ack?.(false);
+      }
     });
 
     socket.on('channel:leave', (channelId: unknown) => {

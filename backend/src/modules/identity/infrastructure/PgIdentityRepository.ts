@@ -118,8 +118,15 @@ export class PgIdentityRepository implements IdentityRepository {
     return rows[0] ? toRefreshToken(rows[0]) : null;
   }
 
-  async revokeRefreshToken(client: Queryable, id: string): Promise<void> {
-    await client.query(`UPDATE rw_refresh_tokens SET revoked_at = now() WHERE id = $1 AND revoked_at IS NULL`, [id]);
+  async revokeRefreshToken(client: Queryable, id: string): Promise<boolean> {
+    const { rows } = await client.query<{ id: string }>(
+      `UPDATE rw_refresh_tokens
+       SET revoked_at = now()
+       WHERE id = $1 AND revoked_at IS NULL
+       RETURNING id`,
+      [id],
+    );
+    return rows.length === 1;
   }
 
   async revokeRefreshTokenFamily(client: Queryable, familyId: string): Promise<void> {

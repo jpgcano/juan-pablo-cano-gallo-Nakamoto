@@ -26,6 +26,9 @@ export class JwtTokenService implements TokenService {
 
   verifyAccessToken(token: string): AccessTokenPayload {
     const decoded = jwt.verify(token, this.accessSecret) as JwtClaims;
+    if (typeof decoded.sub !== 'string' || decoded.sub.length === 0) {
+      throw new Error('El access token no contiene un subject valido');
+    }
     return { userId: decoded.sub };
   }
 
