@@ -6,7 +6,7 @@ Registro de las decisiones tomadas durante la jornada, con su razón y su costo.
 
 ## Índice
 
-- [D1. La seguridad vive en PostgreSQL, no en el backend](#d1)
+- [D1. Defensa en profundidad: los tres niveles validan permisos](#d1)
 - [D2. Tres proyectos independientes en un solo repositorio](#d2)
 - [D3. El backend es un monolito modular, no microservicios](#d3)
 - [D4. Una sola base de datos, con contratos entre módulos](#d4)
@@ -20,22 +20,29 @@ Registro de las decisiones tomadas durante la jornada, con su razón y su costo.
 - [D12. Sin contexto, no se llama al LLM](#d12)
 - [D13. `client_msg_id` para idempotencia](#d13)
 - [D14. El costo del copiloto se almacena, no se deriva](#d14)
+- [D15. Las vistas de contrato exigen `security_invoker = true`](#d15)
 - [Recortes de alcance](#recortes)
 
 ---
 
 <a id="d1"></a>
-## D1. La seguridad vive en PostgreSQL, no en el backend
+## D1. Defensa en profundidad: los tres niveles validan permisos
 
-**Decisión.** Row Level Security sobre canales, mensajes y todas sus derivadas, con un rol de aplicación sin `BYPASSRLS` y el actor fijado por transacción.
+**Decisión.** Frontend, backend y base de datos validan autorización, cada uno con una responsabilidad distinta. No se delega toda la seguridad a una sola capa.
 
-**Alternativa descartada.** Filtrar por membresía en cada consulta del backend.
+| Nivel | Responsabilidad |
+|---|---|
+| Frontend | No solicitar ni renderizar lo que la sesión no debería ver. Es experiencia de usuario, no un control de seguridad — corre en una máquina que no controlamos. |
+| Backend | Verificar el JWT, resolver el actor exclusivamente desde el token, aplicar autorización de ruta y validar la forma de la entrada antes de tocar la base de datos. |
+| Base de datos | Row Level Security sobre canales, mensajes y sus derivadas, con un rol de aplicación sin `BYPASSRLS` y el actor fijado por transacción. |
 
-**Por qué.** El requisito no negociable del enunciado es que nadie acceda a contenido ajeno, y ese requisito debe sobrevivir a las tres superficies que lo tocan: la API, la búsqueda y el copiloto. Filtrar en el backend obliga a acertar en las tres, hoy y en cada endpoint futuro. El fallo típico no es un filtro mal escrito sino un filtro **ausente**, y un filtro ausente no aparece en el diff de un code review.
+**Alternativa descartada.** Confiar la autorización solo al backend, filtrando por membresía en cada consulta.
 
-Con RLS, el estado por defecto ante un error de programación es *no devolver nada*. Un endpoint nuevo nace protegido.
+**Por qué la base de datos es la capa que más esfuerzo recibe.** El requisito no negociable del enunciado es que nadie acceda a contenido ajeno, y ese requisito debe sobrevivir a las tres superficies que lo tocan: la API, la búsqueda y el copiloto. Si la única autorización viviera en el backend, habría que acertar en las tres, hoy y en cada endpoint futuro. El fallo típico no es un filtro mal escrito sino un filtro **ausente**, y un filtro ausente no aparece en el diff de un code review. La base de datos es la única capa que un error de programación en las capas de arriba no puede sortear: con RLS, el estado por defecto ante ese error es *no devolver nada*, no *devolver de más*. Un endpoint nuevo nace protegido incluso si quien lo escribió olvidó pensar en permisos.
 
-**Costo aceptado.** Las políticas son más difíciles de depurar que un `WHERE`, y hay que tener cuidado con la recursión entre políticas (resuelto con una función `SECURITY DEFINER` para la comprobación de membresía). A cambio, la garantía es estructural.
+Esto no vuelve prescindibles al frontend ni al backend. El frontend evita exponer en la interfaz algo que de todos modos sería rechazado, para no confundir al usuario. El backend rechaza peticiones mal formadas o no autenticadas antes de gastar una consulta, y es quien decide **qué actor** se fija — la base de datos no puede inventar esa identidad, solo hacerla cumplir una vez declarada.
+
+**Costo aceptado.** Las políticas de RLS son más difíciles de depurar que un `WHERE`, y hay que tener cuidado con la recursión entre políticas (resuelto con una función `SECURITY DEFINER` para la comprobación de membresía). Mantener autorización en tres lugares también implica mantenerla sincronizada conceptualmente: un permiso nuevo debe pensarse en los tres niveles, no solo en uno. A cambio, ningún nivel es un punto único de fallo.
 
 ---
 
@@ -194,6 +201,21 @@ Es **parcial** porque los mensajes del corpus semilla no tienen `client_msg_id`,
 **Decisión.** `cost_usd` se guarda en `rw_copilot_queries` junto a `tokens_in` y `tokens_out`.
 
 **Por qué no es una violación de 3FN.** Parecería derivable de los tokens, pero depende de la **tarifa vigente en el momento de la consulta**, que es un dato externo y cambiante. Recalcularlo hoy con la tarifa de hoy daría una cifra falsa para las consultas de ayer. Es un hecho histórico registrado, como el precio de una factura — que tampoco se recalcula.
+
+---
+
+<a id="d15"></a>
+## D15. Las vistas de contrato exigen `security_invoker = true`
+
+**Decisión.** `rw_v_user_conversations`, `rw_v_identity_profiles` y `rw_v_copilot_corpus` se crean con `WITH (security_invoker = true)`.
+
+**Cómo se encontró.** No fue una lectura de la documentación de Postgres, fue una prueba fallida. Al probar `rw_v_copilot_corpus` contra la base real, fijando el actor en Ana y filtrando por el canal privado `junta-directiva` (del que ella no es miembro), la consulta devolvió **10 filas en vez de cero**. La vista de conversaciones, probada en el mismo momento, sí devolvía el resultado correcto — lo que hacía la discrepancia más intrigante que un error obvio.
+
+**Por qué pasaba.** Por defecto, una vista de PostgreSQL se ejecuta con los privilegios de su **dueño**, no de quien la consulta — el mismo concepto que `SECURITY DEFINER` en una función, pero aplicado a las vistas sin que haga falta pedirlo. El dueño de las tablas (el rol que corre las migraciones) es propietario de `rw_messages`, y un propietario omite Row Level Security por definición. `rw_v_copilot_corpus` no tenía ningún filtro de membresía propio — dependía por completo de que la política RLS de `rw_messages` se aplicara "a través" de la vista, y esa suposición era falsa. `rw_v_user_conversations` daba el resultado correcto por una razón distinta y algo casual: tiene su propio `JOIN ... ON cm.user_id = rw_current_user_id()` explícito, así que funcionaba a pesar del problema, no gracias a haberlo evitado.
+
+**La correccion.** `security_invoker = true` (disponible desde PostgreSQL 15) hace que la vista corra con los privilegios y el contexto RLS de quien la consulta, exactamente como cualquier otra consulta de `rw_app`. Se aplicó a las tres vistas de contrato, no solo a la que falló, precisamente porque `rw_v_user_conversations` funcionaba por una casualidad de su propio diseño y no por una garantía del motor — si alguien simplificara su `JOIN` en el futuro, el mismo bug reaparecería en silencio.
+
+**Por qué queda documentado como decisión y no como nota al pie.** Es el ejemplo más concreto de lo que dice [D1](#d1) sobre defensa en profundidad: el bug real ocurrió precisamente en la capa que se suponía más confiable, y solo se detectó porque las pruebas corren contra PostgreSQL real (ver `database/tests/`), no contra mocks. Si las pruebas hubieran simulado la capa de datos, este bug habría llegado a producción — o peor, a la sustentación.
 
 ---
 

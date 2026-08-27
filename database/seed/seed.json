@@ -1,0 +1,179 @@
+{
+  "_comment": "Corpus original para bd_juan_cano_nakamoto. Entidades: usuarios, canales, membresias y mensajes con hilos. El canal 'junta-directiva' es privado y Ana Rios (usuaria de referencia de la demo) NO es miembro: es la evidencia para la negativa del copiloto.",
+
+  "users": [
+    { "key": "ana",       "email": "ana.rios@riwi.io",       "full_name": "Ana Ríos",       "job_title": "Líder de Producto",          "locale": "es" },
+    { "key": "luis",      "email": "luis.parra@riwi.io",     "full_name": "Luis Parra",     "job_title": "Desarrollador Backend",      "locale": "es" },
+    { "key": "sara",      "email": "sara.mejia@riwi.io",     "full_name": "Sara Mejía",     "job_title": "Analista de Datos",          "locale": "es" },
+    { "key": "carlos",    "email": "carlos.gomez@riwi.io",   "full_name": "Carlos Gómez",   "job_title": "Desarrollador Frontend",     "locale": "en" },
+    { "key": "valentina", "email": "valentina.ruiz@riwi.io", "full_name": "Valentina Ruiz", "job_title": "Diseñadora UX",              "locale": "es" },
+    { "key": "andres",    "email": "andres.torres@riwi.io",  "full_name": "Andrés Torres",  "job_title": "Ingeniero DevOps",           "locale": "es" },
+    { "key": "camila",    "email": "camila.diaz@riwi.io",    "full_name": "Camila Díaz",    "job_title": "QA Engineer",                "locale": "es" },
+    { "key": "jorge",     "email": "jorge.salazar@riwi.io",  "full_name": "Jorge Salazar",  "job_title": "Director de Tecnología",     "locale": "es" }
+  ],
+
+  "channels": [
+    {
+      "key": "general",
+      "slug": "general",
+      "name": "General",
+      "type": "public",
+      "created_by": "jorge",
+      "members": [
+        { "user": "jorge", "role": "owner" },
+        { "user": "ana", "role": "member" },
+        { "user": "luis", "role": "member" },
+        { "user": "sara", "role": "member" },
+        { "user": "carlos", "role": "member" },
+        { "user": "valentina", "role": "member" },
+        { "user": "andres", "role": "member" },
+        { "user": "camila", "role": "member" }
+      ]
+    },
+    {
+      "key": "desarrollo",
+      "slug": "desarrollo",
+      "name": "Desarrollo",
+      "type": "public",
+      "created_by": "luis",
+      "members": [
+        { "user": "luis", "role": "owner" },
+        { "user": "ana", "role": "member" },
+        { "user": "carlos", "role": "member" },
+        { "user": "andres", "role": "member" },
+        { "user": "camila", "role": "member" },
+        { "user": "jorge", "role": "member" }
+      ]
+    },
+    {
+      "key": "producto",
+      "slug": "producto",
+      "name": "Producto",
+      "type": "private",
+      "created_by": "ana",
+      "members": [
+        { "user": "ana", "role": "owner" },
+        { "user": "valentina", "role": "member" },
+        { "user": "sara", "role": "member" },
+        { "user": "jorge", "role": "member" }
+      ]
+    },
+    {
+      "key": "junta-directiva",
+      "slug": "junta-directiva",
+      "name": "Junta Directiva",
+      "type": "private",
+      "created_by": "jorge",
+      "members": [
+        { "user": "jorge", "role": "owner" },
+        { "user": "andres", "role": "member" }
+      ]
+    },
+    {
+      "key": "ana-luis-dm",
+      "slug": "dm-ana-luis",
+      "name": "Ana Ríos y Luis Parra",
+      "type": "direct",
+      "created_by": "ana",
+      "members": [
+        { "user": "ana", "role": "owner" },
+        { "user": "luis", "role": "member" }
+      ]
+    },
+    {
+      "key": "random",
+      "slug": "random",
+      "name": "Random",
+      "type": "public",
+      "created_by": "camila",
+      "members": [
+        { "user": "camila", "role": "owner" },
+        { "user": "ana", "role": "member" },
+        { "user": "luis", "role": "member" },
+        { "user": "sara", "role": "member" },
+        { "user": "carlos", "role": "member" },
+        { "user": "valentina", "role": "member" },
+        { "user": "andres", "role": "member" },
+        { "user": "jorge", "role": "member" }
+      ]
+    }
+  ],
+
+  "messages": [
+    { "seq": 1,  "channel": "general", "sender": "jorge",     "body": "Buenos días a todos. Arrancamos la semana con el cierre de sprint el jueves, por favor dejen sus tableros actualizados.", "offset_minutes": 0 },
+    { "seq": 2,  "channel": "general", "sender": "ana",       "body": "Recibido. Voy a compartir el resumen de las métricas de adopción del módulo de mensajería antes del mediodía.", "offset_minutes": 12 },
+    { "seq": 3,  "channel": "general", "sender": "valentina", "body": "Perfecto, yo tengo listo el nuevo flujo de onboarding para revisar en el mismo espacio.", "offset_minutes": 25, "reply_to_seq": 2 },
+    { "seq": 4,  "channel": "general", "sender": "carlos",    "body": "Subí los componentes del panel de perfil a Storybook, cualquier feedback de diseño es bienvenido.", "offset_minutes": 140 },
+    { "seq": 5,  "channel": "general", "sender": "valentina", "body": "Los reviso hoy en la tarde, gracias Carlos.", "offset_minutes": 155, "reply_to_seq": 4 },
+    { "seq": 6,  "channel": "general", "sender": "sara",      "body": "Les comparto que el reporte de uso semanal ya está en el dashboard de analítica, canal #desarrollo tuvo el pico más alto de mensajes.", "offset_minutes": 300 },
+    { "seq": 7,  "channel": "general", "sender": "andres",    "body": "Esta noche hay ventana de mantenimiento de la base de datos de staging, de 11pm a 12am. No debería afectar producción.", "offset_minutes": 480 },
+    { "seq": 8,  "channel": "general", "sender": "jorge",     "body": "Gracias por el aviso Andrés. Ana, ¿cómo va la propuesta de precios para el plan empresarial?", "offset_minutes": 500 },
+    { "seq": 9,  "channel": "general", "sender": "ana",       "body": "Casi lista, la comparto mañana en la reunión de producto.", "offset_minutes": 510, "reply_to_seq": 8 },
+    { "seq": 10, "channel": "general", "sender": "camila",    "body": "Encontré un bug en el buscador: el resaltado no funciona si el término tiene tildes. Ya abrí el ticket.", "offset_minutes": 620 },
+    { "seq": 11, "channel": "general", "sender": "luis",      "body": "Gracias Camila, lo reviso hoy. Probablemente sea la normalización del texto antes de indexar.", "offset_minutes": 630, "reply_to_seq": 10 },
+    { "seq": 12, "channel": "general", "sender": "valentina", "body": "Feliz viernes equipo, dejo por acá las capturas del nuevo ícono de estado de mensaje enviado y fallido.", "offset_minutes": 1400 },
+    { "seq": 13, "channel": "general", "sender": "carlos",    "body": "Se ven muy bien, el de fallido es claro incluso sin leer el texto.", "offset_minutes": 1410, "reply_to_seq": 12 },
+    { "seq": 14, "channel": "general", "sender": "jorge",     "body": "Buen cierre de semana. Nos vemos el lunes con el demo para el cliente.", "offset_minutes": 1900 },
+
+    { "seq": 15, "channel": "desarrollo", "sender": "luis",      "body": "Voy a empezar la migración del histórico de mensajes a paginación por keyset, dejo el PR en un par de horas.", "offset_minutes": 2000 },
+    { "seq": 16, "channel": "desarrollo", "sender": "andres",    "body": "Ojo con el índice compuesto (created_at, id), sin eso la consulta va a hacer sort completo en tablas grandes.", "offset_minutes": 2015, "reply_to_seq": 15 },
+    { "seq": 17, "channel": "desarrollo", "sender": "luis",      "body": "Ya está contemplado, lo agrego en la misma migración.", "offset_minutes": 2025, "reply_to_seq": 16 },
+    { "seq": 18, "channel": "desarrollo", "sender": "carlos",    "body": "¿Alguien más está viendo timeouts intermitentes al conectar el WebSocket en desarrollo?", "offset_minutes": 2200 },
+    { "seq": 19, "channel": "desarrollo", "sender": "andres",    "body": "Sí, es el proxy local. Actualicé la configuración de nginx, hagan pull de la rama de infra.", "offset_minutes": 2215, "reply_to_seq": 18 },
+    { "seq": 20, "channel": "desarrollo", "sender": "camila",    "body": "Escribí los dos casos de prueba de seguridad: un usuario no miembro no puede leer ni enviar mensajes en un canal ajeno.", "offset_minutes": 2400 },
+    { "seq": 21, "channel": "desarrollo", "sender": "luis",      "body": "Excelente, ¿corren contra la base real con RLS activo o contra mocks?", "offset_minutes": 2410, "reply_to_seq": 20 },
+    { "seq": 22, "channel": "desarrollo", "sender": "camila",    "body": "Contra la base real, así valida el comportamiento de las políticas y no solo la lógica de la aplicación.", "offset_minutes": 2420, "reply_to_seq": 21 },
+    { "seq": 23, "channel": "desarrollo", "sender": "jorge",     "body": "Ese es justo el estándar que quiero para todo el módulo de seguridad, buen trabajo.", "offset_minutes": 2430, "reply_to_seq": 22 },
+    { "seq": 24, "channel": "desarrollo", "sender": "ana",       "body": "¿El endpoint de búsqueda ya soporta resaltado del término encontrado? Lo necesito para la demo del jueves.", "offset_minutes": 2600 },
+    { "seq": 25, "channel": "desarrollo", "sender": "luis",      "body": "Sí, usa ts_headline sobre el vector de búsqueda. Te paso un ejemplo por acá en un momento.", "offset_minutes": 2610, "reply_to_seq": 24 },
+    { "seq": 26, "channel": "desarrollo", "sender": "andres",    "body": "Terminé de configurar el healthcheck del contenedor de la base de datos, docker compose up ya espera a que postgres esté realmente listo.", "offset_minutes": 2800 },
+    { "seq": 27, "channel": "desarrollo", "sender": "carlos",    "body": "Buenísimo, eso nos ahorraba errores raros de conexión al levantar todo desde cero.", "offset_minutes": 2810, "reply_to_seq": 26 },
+    { "seq": 28, "channel": "desarrollo", "sender": "luis",      "body": "El trigger que mantiene el search_vector ya está funcionando, probé con tildes y mayúsculas.", "offset_minutes": 3000 },
+    { "seq": 29, "channel": "desarrollo", "sender": "camila",    "body": "Perfecto, eso resuelve el bug que reporté en #general.", "offset_minutes": 3010, "reply_to_seq": 28 },
+    { "seq": 30, "channel": "desarrollo", "sender": "jorge",     "body": "¿Cómo va el copiloto con la recuperación de contexto? Es la parte que más quiero ver en la demo.", "offset_minutes": 3200 },
+
+    { "seq": 31, "channel": "producto", "sender": "ana",       "body": "Convoco para revisar el roadmap del trimestre. Propongo priorizar el copiloto sobre la exportación de reportes.", "offset_minutes": 5000 },
+    { "seq": 32, "channel": "producto", "sender": "jorge",     "body": "De acuerdo, el copiloto es el diferenciador frente a la competencia ahora mismo.", "offset_minutes": 5015, "reply_to_seq": 31 },
+    { "seq": 33, "channel": "producto", "sender": "sara",      "body": "Los datos de uso confirman eso: los canales con más actividad son justo donde la gente busca información histórica.", "offset_minutes": 5030, "reply_to_seq": 32 },
+    { "seq": 34, "channel": "producto", "sender": "valentina", "body": "Les comparto los wireframes del panel del copiloto: conversación, panel del copiloto y perfil como tres zonas separadas.", "offset_minutes": 5200 },
+    { "seq": 35, "channel": "producto", "sender": "ana",       "body": "Me gusta que el perfil quede siempre visible, ayuda a que el usuario entienda que el copiloto lo reconoce.", "offset_minutes": 5210, "reply_to_seq": 34 },
+    { "seq": 36, "channel": "producto", "sender": "jorge",     "body": "Ese punto es clave para el pitch: el copiloto conoce el cargo del usuario porque lo arma el servidor desde el token, no porque el cliente lo declare.", "offset_minutes": 5220, "reply_to_seq": 35 },
+    { "seq": 37, "channel": "producto", "sender": "sara",      "body": "Voy a preparar la consulta de consumo acumulado por usuario, la necesitamos para el reporte de costos del copiloto.", "offset_minutes": 5400 },
+    { "seq": 38, "channel": "producto", "sender": "ana",       "body": "Perfecto, inclúyela en el mismo dashboard de adopción.", "offset_minutes": 5410, "reply_to_seq": 37 },
+    { "seq": 39, "channel": "producto", "sender": "valentina", "body": "¿La interfaz va a estar disponible en inglés también? Tenemos coders internacionales en la cohorte.", "offset_minutes": 5600 },
+    { "seq": 40, "channel": "producto", "sender": "ana",       "body": "Sí, español e inglés desde el primer release.", "offset_minutes": 5610, "reply_to_seq": 39 },
+    { "seq": 41, "channel": "producto", "sender": "jorge",     "body": "Cierre de la reunión: prioridad copiloto, luego exportación de reportes. Gracias a todos.", "offset_minutes": 5800 },
+    { "seq": 42, "channel": "producto", "sender": "sara",      "body": "Dejo el enlace del dashboard actualizado en el canal para quien quiera revisarlo antes del viernes.", "offset_minutes": 6000 },
+
+    { "seq": 43, "channel": "junta-directiva", "sender": "jorge",  "body": "Andrés, necesito tu proyección de costos de infraestructura para el presupuesto del próximo trimestre antes del comité.", "offset_minutes": 7500 },
+    { "seq": 44, "channel": "junta-directiva", "sender": "andres", "body": "La tengo casi lista. Con el crecimiento actual, el gasto en cómputo sube cerca de 18% si mantenemos el mismo proveedor.", "offset_minutes": 7515, "reply_to_seq": 43 },
+    { "seq": 45, "channel": "junta-directiva", "sender": "jorge",  "body": "Evaluemos migrar la carga de embeddings a instancias reservadas, debería bajar ese número.", "offset_minutes": 7530, "reply_to_seq": 44 },
+    { "seq": 46, "channel": "junta-directiva", "sender": "jorge",  "body": "Sobre el ajuste salarial: aprobé un incremento del 12% para el equipo de backend a partir del próximo ciclo, sujeto a confirmación del comité financiero.", "offset_minutes": 7700 },
+    { "seq": 47, "channel": "junta-directiva", "sender": "andres", "body": "Entendido, lo mantengo confidencial hasta el anuncio oficial. ¿Aplica también para el clan Nakamoto?", "offset_minutes": 7715, "reply_to_seq": 46 },
+    { "seq": 48, "channel": "junta-directiva", "sender": "jorge",  "body": "Sí, aplica a todos los clanes activos este trimestre.", "offset_minutes": 7725, "reply_to_seq": 47 },
+    { "seq": 49, "channel": "junta-directiva", "sender": "jorge",  "body": "Otro punto: estamos evaluando a Ana Ríos para el ascenso a VP de Producto el próximo semestre. Aún no se lo comuniquen, falta la validación del comité.", "offset_minutes": 7900 },
+    { "seq": 50, "channel": "junta-directiva", "sender": "andres", "body": "Totalmente merecido por los resultados del último lanzamiento. Guardo la confidencialidad.", "offset_minutes": 7915, "reply_to_seq": 49 },
+    { "seq": 51, "channel": "junta-directiva", "sender": "jorge",  "body": "También quedó pendiente la ronda de inversión: el cierre estimado es en dos meses, cifra aún no confirmada con los inversionistas.", "offset_minutes": 8100 },
+    { "seq": 52, "channel": "junta-directiva", "sender": "andres", "body": "Perfecto, te aviso en cuanto tenga la proyección final de infraestructura para ese escenario.", "offset_minutes": 8115, "reply_to_seq": 51 },
+
+    { "seq": 53, "channel": "ana-luis-dm", "sender": "ana",  "body": "Luis, ¿tienes un momento para revisar el flujo de reintento cuando falla el envío de un mensaje?", "offset_minutes": 9500 },
+    { "seq": 54, "channel": "ana-luis-dm", "sender": "luis", "body": "Claro, dame diez minutos y te muestro cómo quedó con el client_msg_id para que no se dupliquen los reintentos.", "offset_minutes": 9510, "reply_to_seq": 53 },
+    { "seq": 55, "channel": "ana-luis-dm", "sender": "ana",  "body": "Perfecto, eso era justo mi duda: qué pasa si el usuario reenvía por desesperación.", "offset_minutes": 9525, "reply_to_seq": 54 },
+    { "seq": 56, "channel": "ana-luis-dm", "sender": "luis", "body": "El índice único parcial por canal y client_msg_id lo resuelve, reenviar no crea una fila nueva.", "offset_minutes": 9540, "reply_to_seq": 55 },
+    { "seq": 57, "channel": "ana-luis-dm", "sender": "ana",  "body": "Genial. Otra cosa, ¿la búsqueda ya resalta el término encontrado en el resultado?", "offset_minutes": 9700 },
+    { "seq": 58, "channel": "ana-luis-dm", "sender": "luis", "body": "Sí, con ts_headline. Te paso una captura en un momento.", "offset_minutes": 9710, "reply_to_seq": 57 },
+    { "seq": 59, "channel": "ana-luis-dm", "sender": "ana",  "body": "Gracias, con eso completo la demo del jueves.", "offset_minutes": 9720, "reply_to_seq": 58 },
+    { "seq": 60, "channel": "ana-luis-dm", "sender": "luis", "body": "Una duda tuya para el copiloto: si alguien pregunta por algo de un canal donde no está, ¿qué le responde exactamente?", "offset_minutes": 9900 },
+    { "seq": 61, "channel": "ana-luis-dm", "sender": "ana",  "body": "Una negativa explícita, algo como que no tiene contexto suficiente o permisos para responder eso.", "offset_minutes": 9915, "reply_to_seq": 60 },
+    { "seq": 62, "channel": "ana-luis-dm", "sender": "luis", "body": "Perfecto, así lo dejo documentado en el prompt versionado.", "offset_minutes": 9930, "reply_to_seq": 61 },
+
+    { "seq": 63, "channel": "random", "sender": "camila",    "body": "¿Alguien tiene recomendaciones de un buen lugar para almorzar cerca de la sede?", "offset_minutes": 11500 },
+    { "seq": 64, "channel": "random", "sender": "valentina", "body": "El de la esquina tiene un menú del día muy bueno, yo voy casi todos los miércoles.", "offset_minutes": 11510, "reply_to_seq": 63 },
+    { "seq": 65, "channel": "random", "sender": "sara",      "body": "Confirmado, hoy fui y estaba delicioso.", "offset_minutes": 11520, "reply_to_seq": 64 },
+    { "seq": 66, "channel": "random", "sender": "carlos",    "body": "¿Torneo de ping pong el viernes en la sala de descanso? Ya llevamos dos semanas sin jugar.", "offset_minutes": 11800 },
+    { "seq": 67, "channel": "random", "sender": "andres",    "body": "Cuenta conmigo, voy a defender el título.", "offset_minutes": 11810, "reply_to_seq": 66 },
+    { "seq": 68, "channel": "random", "sender": "ana",       "body": "Yo me apunto solo a ver, mi nivel de ping pong es bastante bajo.", "offset_minutes": 11820, "reply_to_seq": 66 },
+    { "seq": 69, "channel": "random", "sender": "jorge",     "body": "Buen ambiente el del equipo, eso también se nota en el producto.", "offset_minutes": 12000 },
+    { "seq": 70, "channel": "random", "sender": "luis",      "body": "Totalmente de acuerdo. Feliz semana a todos.", "offset_minutes": 12010, "reply_to_seq": 69 }
+  ]
+}

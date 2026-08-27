@@ -15,7 +15,7 @@ Mensajería interna para Riwi Co. S.A.S. con canales, búsqueda, tiempo real y u
 - Copiloto con RAG que cita los mensajes en los que se apoya y **niega explícitamente** cuando no tiene permisos o contexto
 - Interfaz responsiva en español e inglés
 
-La garantía central: **ningún usuario puede leer, buscar ni consultar por copiloto contenido de un canal donde no es miembro.** Esa restricción está implementada en PostgreSQL con Row Level Security, no en el código de la aplicación. El detalle está en [`ARCHITECTURE.md`](ARCHITECTURE.md).
+La garantía central: **ningún usuario puede leer, buscar ni consultar por copiloto contenido de un canal donde no es miembro.** Esa restricción se valida en los tres niveles — frontend, backend y base de datos —, con PostgreSQL como última línea, no bypasseable, mediante Row Level Security. El detalle está en [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ---
 
@@ -138,7 +138,13 @@ Lo más rápido para comprobar que la restricción es real y no una promesa del 
 docker compose exec db psql -U rw_app -d bd_juan_cano_nakamoto -c "SELECT count(*) FROM rw_messages;"
 ```
 
-Devuelve **cero**. La conexión es válida y la tabla tiene cientos de filas, pero sin declarar el actor de la transacción las políticas RLS no dejan pasar nada. El modo seguro es el modo por defecto.
+La conexión es válida y la tabla tiene cientos de filas, pero falla:
+
+```
+ERROR:  app.current_user_id no esta fijado para esta transaccion
+```
+
+No es una tabla vacía disfrazada de resultado válido — es una excepción explícita. `rw_current_user_id()` está escrita para fallar de forma ruidosa en vez de devolver `NULL` en silencio (si devolviera `NULL`, la política simplemente no encontraría coincidencias y la consulta parecería una tabla vacía legítima, indistinguible de "este usuario no tiene mensajes"). El modo seguro es el modo por defecto, y además es imposible de confundir con una respuesta real.
 
 Las pruebas automatizadas cubren los dos escenarios que exige el enunciado, más un intento de inyección de instrucciones en el copiloto:
 

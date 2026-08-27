@@ -1,0 +1,7 @@
+# No define "packages": este proyecto NO es un workspace de multiples
+# paquetes (ver DECISIONS.md D2 - database, backend y frontend son
+# independientes a proposito). pnpm exige este archivo unicamente para
+# configuracion local de build scripts.
+allowBuilds:
+  argon2: true
+  esbuild: true

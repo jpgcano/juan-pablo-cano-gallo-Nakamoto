@@ -8,13 +8,17 @@ Plataforma de mensajería interna para Riwi Co. S.A.S. con copiloto de IA sobre 
 
 > Ningún usuario puede leer, buscar o consultar mediante el copiloto contenido al que no tiene acceso.
 
-Este requisito admite dos implementaciones muy distintas:
+Este requisito se cumple con **defensa en profundidad**: los tres niveles —frontend, backend y base de datos— validan permisos, y cada uno lo hace por una razón distinta. No es que un nivel "haga" la seguridad y los otros dos sean decorativos; es que fallan de formas distintas, y un fallo en un nivel no debe convertirse en una fuga si los otros siguen en pie.
 
-**La habitual** — el backend recibe la petición, consulta quién es el usuario, arma un `WHERE` con sus canales y confía en no haberse olvidado de ninguna ruta. Funciona hasta que alguien agrega un endpoint nuevo, una consulta de reportes o un pipeline de IA, y omite el filtro. El agujero no se ve en code review porque el código que falta no aparece en el diff.
+| Nivel | Qué valida | Por qué no basta por sí solo |
+|---|---|---|
+| **Frontend** | Solo pide y renderiza lo que la sesión actual debería poder ver: no muestra un canal ajeno en la lista, no ofrece un botón de acción sin permiso | Corre en el navegador del usuario. Cualquiera puede abrir las herramientas de desarrollador y llamar a la API directamente, saltándose la interfaz por completo. Es la primera experiencia, nunca la garantía. |
+| **Backend** | Verifica la firma y vigencia del JWT, resuelve el `userId` exclusivamente desde el token, aplica autorización a nivel de ruta y valida la forma de la entrada antes de tocar la base de datos | Es una capa de código como cualquier otra: un desarrollador puede agregar un endpoint nuevo, una consulta de reportes o un pipeline de IA y olvidar el filtro de permisos. El agujero no se ve en code review porque el código que falta no aparece en el diff. |
+| **Base de datos** | Row Level Security evalúa membresía en cada fila devuelta, sin excepción, sin importar qué ruta o consulta llegó hasta ahí | Es la única capa que **no se puede rodear escribiendo mal el código de arriba**. El backend se conecta con un rol sin `BYPASSRLS` y declara el actor al inicio de cada transacción; a partir de ahí, aunque el SQL esté mal escrito o falte una validación en el caso de uso, la política sigue aplicando. |
 
-**La elegida aquí** — la restricción vive en PostgreSQL. El backend se conecta con un rol sin `BYPASSRLS`, declara al inicio de cada transacción quién es el actor, y a partir de ahí *no puede* ver de más aunque el SQL esté mal escrito. Un endpoint nuevo nace protegido. Un `SELECT *` desde `psql` con el rol de la aplicación devuelve cero filas si no se declaró actor.
+La razón para invertir el esfuerzo principal en la capa de base de datos no es que las otras dos sobren, sino que es la única donde un error de programación se traduce en "no devuelve nada" en vez de "devuelve de más". Un endpoint nuevo nace protegido incluso si el desarrollador que lo escribió olvidó pensar en permisos. Un `SELECT *` desde `psql` con el rol de la aplicación devuelve cero filas si no se declaró actor — es la prueba más simple de que la última línea sostiene aunque las de arriba fallen.
 
-Todo lo que sigue —los módulos, los contratos, la forma del copiloto— es consecuencia de esa decisión.
+Todo lo que sigue —los módulos, los contratos, la forma del copiloto— refleja esa defensa en tres niveles.
 
 ![Contexto del sistema](docs/diagrams/context.png)
 
@@ -152,6 +156,8 @@ Cada tabla pertenece a un módulo, y **ningún módulo consulta las tablas de ot
 Lo interesante es que **la frontera del módulo y la defensa contra la fuga de contexto son el mismo mecanismo**. El módulo `copilot` no tiene forma de nombrar `rw_messages`; solo conoce un corpus que ya viene recortado a lo que el actor puede ver. Una decisión tomada por limpieza arquitectónica resulta ser, además, la que hace imposible el escenario que el enunciado castiga.
 
 Si mañana se quisiera un esquema o una base por módulo, el cambio es mecánico: los consumidores ya no tocan tablas ajenas.
+
+Las tres vistas de esta tabla se crean con `WITH (security_invoker = true)`. Sin esa cláusula una vista corre con los privilegios de su dueño y **omite RLS por completo**, sin importar qué política tenga la tabla de origen — se detectó probando contra una base real, no leyendo la documentación. El detalle completo, con el resultado exacto de la prueba que lo destapó, está en [DECISIONS.md — D15](DECISIONS.md#d15).
 
 ---
 
