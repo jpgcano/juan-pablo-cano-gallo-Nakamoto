@@ -39,6 +39,7 @@ export interface RefreshTokenRecord {
 export interface IdentityRepository {
   findByEmail(client: Queryable, email: string): Promise<UserRecord | null>;
   findProfileById(client: Queryable, id: string): Promise<UserProfile | null>;
+  findProfilesByIds(client: Queryable, ids: string[]): Promise<UserProfile[]>;
 
   insertRefreshToken(
     client: Queryable,

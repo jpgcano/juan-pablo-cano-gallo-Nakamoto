@@ -14,6 +14,21 @@ export class GetMeUseCase {
   }
 }
 
+/**
+ * Resuelve nombre y cargo de otros usuarios en lote (p. ej. para mostrar
+ * el remitente de cada mensaje). requesterId no filtra el resultado -
+ * rw_v_identity_profiles es un directorio, visible para cualquier
+ * colaborador autenticado - pero se sigue exigiendo un actor por
+ * consistencia con el resto del modulo.
+ */
+export class GetProfilesByIdsUseCase {
+  constructor(private readonly uow: UnitOfWork, private readonly repository: IdentityRepository) {}
+
+  async execute(requesterId: string, ids: string[]): Promise<UserProfile[]> {
+    return this.uow.runAs(requesterId, (client) => this.repository.findProfilesByIds(client, ids));
+  }
+}
+
 export class UpdateProfileUseCase {
   constructor(private readonly uow: UnitOfWork, private readonly repository: IdentityRepository) {}
 

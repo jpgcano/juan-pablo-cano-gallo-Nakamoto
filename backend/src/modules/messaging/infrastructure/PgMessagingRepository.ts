@@ -117,12 +117,20 @@ export class PgMessagingRepository implements MessagingRepository {
   }
 
   // Consulta 2 (database/queries/02_search_with_highlight.sql).
+  //
+  // StartSel/StopSel usan marcadores de texto plano, NUNCA <mark>/</mark>:
+  // ts_headline no escapa HTML, solo envuelve el termino encontrado - el
+  // resto del cuerpo (el mensaje de otro usuario) pasa tal cual. Si
+  // devolviera HTML crudo y el frontend lo insertara con
+  // dangerouslySetInnerHTML, cualquier mensaje con <script> seria una XSS
+  // almacenada. El frontend parte el string por estos marcadores y renderiza
+  // cada segmento como texto, nunca como HTML (ver ChannelList.tsx).
   async search(client: Queryable, input: { term: string; limit: number }): Promise<SearchHit[]> {
     const { rows } = await client.query<SearchRow>(
       `SELECT
          id, channel_id, sender_id, created_at,
          ts_headline('spanish', body, websearch_to_tsquery('spanish', $1),
-           'StartSel=<mark>, StopSel=</mark>, MaxFragments=2, MaxWords=15, MinWords=5') AS highlighted_body,
+           'StartSel={{HL}}, StopSel={{/HL}}, MaxFragments=2, MaxWords=15, MinWords=5') AS highlighted_body,
          ts_rank(search_vector, websearch_to_tsquery('spanish', $1)) AS rank
        FROM rw_messages
        WHERE deleted_at IS NULL

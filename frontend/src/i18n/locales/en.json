@@ -1,0 +1,89 @@
+{
+  "app": {
+    "title": "Riwi Messaging"
+  },
+  "auth": {
+    "title": "Sign in",
+    "subtitle": "Riwi's internal messaging platform",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "error": "Incorrect email or password"
+  },
+  "nav": {
+    "conversations": "Conversation",
+    "copilot": "Copilot",
+    "profile": "Profile"
+  },
+  "conversations": {
+    "title": "Conversations",
+    "empty": "You don't belong to any channel yet",
+    "loading": "Loading conversations…",
+    "error": "Couldn't load your conversations",
+    "searchPlaceholder": "Search messages…",
+    "searchResults": "Search results",
+    "searchEmpty": "No results for \"{{term}}\"",
+    "clearSearch": "Back to conversations",
+    "noSelection": "Select a conversation to get started",
+    "channelType": {
+      "public": "Public",
+      "private": "Private",
+      "direct": "Direct"
+    }
+  },
+  "messages": {
+    "placeholder": "Write a message…",
+    "send": "Send",
+    "pending": "Sending…",
+    "sent": "Sent",
+    "failed": "Couldn't send",
+    "retry": "Retry",
+    "edited": "edited",
+    "deletedPlaceholder": "This message was deleted",
+    "loadMore": "Load earlier messages",
+    "loading": "Loading messages…",
+    "empty": "No messages in this channel yet",
+    "error": "Couldn't load the history",
+    "replyingTo": "Replying to",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancelEdit": "Cancel",
+    "saveEdit": "Save",
+    "confirmDelete": "Delete this message?",
+    "you": "You"
+  },
+  "copilot": {
+    "title": "Copilot",
+    "subtitle": "Ask about your conversations. It only answers with what you can see.",
+    "placeholder": "Ask the copilot something…",
+    "ask": "Ask",
+    "thinking": "Thinking…",
+    "citationsTitle": "Sources",
+    "noContext": "I don't have enough context in your conversations to answer that.",
+    "outOfScope": "That question isn't related to your conversations in Riwi.",
+    "usageTitle": "Usage",
+    "empty": "You haven't asked the copilot anything yet",
+    "goToMessage": "View message"
+  },
+  "profile": {
+    "title": "Profile",
+    "fullName": "Full name",
+    "jobTitle": "Job title",
+    "locale": "Language",
+    "save": "Save changes",
+    "saved": "Profile updated",
+    "logout": "Log out",
+    "deactivate": "Deactivate my account",
+    "confirmDeactivate": "Are you sure you want to deactivate your account? All your sessions will be closed."
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "back": "Back"
+  }
+}

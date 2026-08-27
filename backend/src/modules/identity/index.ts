@@ -4,7 +4,12 @@ import type { UnitOfWork } from '../../shared/postgres/UnitOfWork.js';
 import { LoginUseCase } from './application/LoginUseCase.js';
 import { RefreshUseCase } from './application/RefreshUseCase.js';
 import { LogoutUseCase } from './application/LogoutUseCase.js';
-import { DeactivateAccountUseCase, GetMeUseCase, UpdateProfileUseCase } from './application/ProfileUseCases.js';
+import {
+  DeactivateAccountUseCase,
+  GetMeUseCase,
+  GetProfilesByIdsUseCase,
+  UpdateProfileUseCase,
+} from './application/ProfileUseCases.js';
 import { Argon2PasswordHasher } from './infrastructure/Argon2PasswordHasher.js';
 import { JwtTokenService } from './infrastructure/JwtTokenService.js';
 import { PgIdentityRepository } from './infrastructure/PgIdentityRepository.js';
@@ -25,6 +30,7 @@ export function createIdentityModule(uow: UnitOfWork) {
   const refresh = new RefreshUseCase(uow, repository, tokenService, env.JWT_REFRESH_TTL_DAYS);
   const logout = new LogoutUseCase(uow, repository, tokenService);
   const getMe = new GetMeUseCase(uow, repository);
+  const getProfilesByIds = new GetProfilesByIdsUseCase(uow, repository);
   const updateProfile = new UpdateProfileUseCase(uow, repository);
   const deactivate = new DeactivateAccountUseCase(uow, repository);
 
@@ -36,6 +42,7 @@ export function createIdentityModule(uow: UnitOfWork) {
         refresh,
         logout,
         getMe,
+        getProfilesByIds,
         updateProfile,
         deactivate,
         requireAuth,

@@ -4,8 +4,13 @@ import { parseOrThrow } from '../../../../shared/http/validate.js';
 import type { LoginUseCase } from '../../application/LoginUseCase.js';
 import type { RefreshUseCase } from '../../application/RefreshUseCase.js';
 import type { LogoutUseCase } from '../../application/LogoutUseCase.js';
-import type { DeactivateAccountUseCase, GetMeUseCase, UpdateProfileUseCase } from '../../application/ProfileUseCases.js';
-import { loginSchema, updateProfileSchema } from './schemas.js';
+import type {
+  DeactivateAccountUseCase,
+  GetMeUseCase,
+  GetProfilesByIdsUseCase,
+  UpdateProfileUseCase,
+} from '../../application/ProfileUseCases.js';
+import { listProfilesQuerySchema, loginSchema, updateProfileSchema } from './schemas.js';
 
 const REFRESH_COOKIE = 'riwi_refresh';
 
@@ -14,6 +19,7 @@ export interface IdentityRouteDeps {
   refresh: RefreshUseCase;
   logout: LogoutUseCase;
   getMe: GetMeUseCase;
+  getProfilesByIds: GetProfilesByIdsUseCase;
   updateProfile: UpdateProfileUseCase;
   deactivate: DeactivateAccountUseCase;
   requireAuth: preHandlerHookHandler;
@@ -50,6 +56,11 @@ export function registerIdentityRoutes(app: FastifyInstance, deps: IdentityRoute
     if (token) await deps.logout.execute(token);
     reply.clearCookie(REFRESH_COOKIE, { path: '/api/v1/auth' });
     reply.status(204);
+  });
+
+  app.get('/users', { preHandler: deps.requireAuth }, async (request) => {
+    const { ids } = parseOrThrow(listProfilesQuerySchema, request.query);
+    return deps.getProfilesByIds.execute(request.actor!.userId, ids);
   });
 
   app.get('/me', { preHandler: deps.requireAuth }, async (request) => {

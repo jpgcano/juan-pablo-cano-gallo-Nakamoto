@@ -1,0 +1,89 @@
+{
+  "app": {
+    "title": "Riwi Mensajería"
+  },
+  "auth": {
+    "title": "Inicia sesión",
+    "subtitle": "Plataforma interna de mensajería de Riwi",
+    "email": "Correo",
+    "password": "Contraseña",
+    "submit": "Entrar",
+    "submitting": "Entrando…",
+    "error": "Correo o contraseña incorrectos"
+  },
+  "nav": {
+    "conversations": "Conversación",
+    "copilot": "Copiloto",
+    "profile": "Perfil"
+  },
+  "conversations": {
+    "title": "Conversaciones",
+    "empty": "Todavía no perteneces a ningún canal",
+    "loading": "Cargando conversaciones…",
+    "error": "No se pudieron cargar las conversaciones",
+    "searchPlaceholder": "Buscar mensajes…",
+    "searchResults": "Resultados de búsqueda",
+    "searchEmpty": "Sin resultados para \"{{term}}\"",
+    "clearSearch": "Volver a conversaciones",
+    "noSelection": "Selecciona una conversación para empezar",
+    "channelType": {
+      "public": "Público",
+      "private": "Privado",
+      "direct": "Directo"
+    }
+  },
+  "messages": {
+    "placeholder": "Escribe un mensaje…",
+    "send": "Enviar",
+    "pending": "Enviando…",
+    "sent": "Enviado",
+    "failed": "No se pudo enviar",
+    "retry": "Reintentar",
+    "edited": "editado",
+    "deletedPlaceholder": "Este mensaje fue eliminado",
+    "loadMore": "Cargar mensajes anteriores",
+    "loading": "Cargando mensajes…",
+    "empty": "Aún no hay mensajes en este canal",
+    "error": "No se pudo cargar el historial",
+    "replyingTo": "Respondiendo a",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "cancelEdit": "Cancelar",
+    "saveEdit": "Guardar",
+    "confirmDelete": "¿Eliminar este mensaje?",
+    "you": "Tú"
+  },
+  "copilot": {
+    "title": "Copiloto",
+    "subtitle": "Pregunta sobre tus conversaciones. Solo responde con lo que puedes ver.",
+    "placeholder": "Pregúntale algo al copiloto…",
+    "ask": "Preguntar",
+    "thinking": "Pensando…",
+    "citationsTitle": "Fuentes",
+    "noContext": "No tengo contexto suficiente en tus conversaciones para responder eso.",
+    "outOfScope": "Esa pregunta no está relacionada con tus conversaciones en Riwi.",
+    "usageTitle": "Consumo",
+    "empty": "Todavía no le has preguntado nada al copiloto",
+    "goToMessage": "Ver mensaje"
+  },
+  "profile": {
+    "title": "Perfil",
+    "fullName": "Nombre completo",
+    "jobTitle": "Cargo",
+    "locale": "Idioma",
+    "save": "Guardar cambios",
+    "saved": "Perfil actualizado",
+    "logout": "Cerrar sesión",
+    "deactivate": "Desactivar mi cuenta",
+    "confirmDeactivate": "¿Seguro que quieres desactivar tu cuenta? Se cerrarán todas tus sesiones."
+  },
+  "common": {
+    "loading": "Cargando…",
+    "error": "Algo salió mal",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "close": "Cerrar",
+    "back": "Volver"
+  }
+}

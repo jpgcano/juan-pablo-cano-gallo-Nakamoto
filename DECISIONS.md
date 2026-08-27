@@ -22,6 +22,7 @@ Registro de las decisiones tomadas durante la jornada, con su razón y su costo.
 - [D14. El costo del copiloto se almacena, no se deriva](#d14)
 - [D15. Las vistas de contrato exigen `security_invoker = true`](#d15)
 - [D16. El proveedor falso de IA usa hashing de palabras, no ruido puro](#d16)
+- [D17. El resaltado de búsqueda usa marcadores de texto, nunca HTML crudo](#d17)
 - [Recortes de alcance](#recortes)
 
 ---
@@ -230,6 +231,19 @@ Es **parcial** porque los mensajes del corpus semilla no tienen `client_msg_id`,
 **La corrección.** Con *feature hashing*, dos textos que comparten palabras producen vectores con un parecido medible; textos sin relación, no. No es semántica real (no entiende sinónimos), pero es suficiente para que el ranking por similitud tenga sentido en la demo y en los tests, sin tocar la red ni depender de una API key.
 
 **Por qué importa para la seguridad, no solo para la demo.** Esto permitió una prueba mucho más convincente que "no hay resultados": se le preguntó al copiloto por el ajuste salarial y el presupuesto de infraestructura discutidos en `junta-directiva` usando ese vocabulario exacto — con embeddings donde ese parecido léxico SÍ se refleja en similitud — y el canal siguió sin aparecer entre las citas. La exclusión es por membresía, no por casualidad de que el contenido no fuera parecido (ver `backend/tests/security.integration.test.ts`).
+
+---
+
+<a id="d17"></a>
+## D17. El resaltado de búsqueda usa marcadores de texto, nunca HTML crudo
+
+**Decisión.** `ts_headline` se configura con `StartSel={{HL}}, StopSel={{/HL}}` (texto plano) en vez de `StartSel=<mark>, StopSel=</mark>`. El frontend parte la respuesta por esos marcadores y renderiza cada segmento como texto de React (`components/HighlightedText.tsx`), envolviendo la parte coincidente en un `<mark>` real - nunca con `dangerouslySetInnerHTML`.
+
+**Cómo se encontró.** Escribiendo la lista de resultados de búsqueda, la forma más directa de "insertar el resaltado que manda el servidor" era `dangerouslySetInnerHTML={{ __html: hit.highlightedBody }}` con `ts_headline` devolviendo `<mark>...</mark>`. Al revisar esa línea antes de darla por terminada: `ts_headline` no sabe nada de HTML, solo envuelve el término encontrado con el `StartSel`/`StopSel` que se le indique - el resto del texto es el cuerpo del mensaje **de otro colaborador**, sin escapar. Un mensaje que contuviera `<img src=x onerror=alert(1)>` se habría insertado tal cual en el DOM de quien buscara ese término: una XSS almacenada, disparada por el contenido de un tercero, no por quien la sufre.
+
+**La corrección.** Cambiar los delimitadores a un marcador que no es HTML elimina la ambigüedad de raíz: ya no hay HTML que interpretar, solo texto con dos tokens a partir de los cuales React decide qué envolver en `<mark>`. El body del mensaje nunca pasa por un parser de HTML.
+
+**Por qué queda como decisión y no como corrección silenciosa.** Es la segunda vez que un vector de fuga aparece exactamente en el punto donde el sistema muestra contenido escrito por otra persona (la primera fue [D15](#d15), en la capa de datos). Ambos casos comparten la misma lección: cualquier lugar que reenvía texto ajeno hacia una capa que lo "interpreta" (RLS que se omite, HTML que se renderiza) es donde hay que mirar dos veces antes de dar el código por terminado.
 
 ---
 

@@ -17,6 +17,14 @@
 -- RLS filtra por canal exactamente igual que en la Consulta 1: un mensaje
 -- de un canal ajeno nunca entra al ts_rank porque nunca pasa la politica
 -- rw_messages_select.
+--
+-- StartSel/StopSel son marcadores de TEXTO PLANO ({{HL}} / {{/HL}}), no
+-- <mark>/</mark>: ts_headline no escapa HTML, y el resto del cuerpo es
+-- contenido de otro usuario. Insertar el resultado como HTML crudo en el
+-- cliente (dangerouslySetInnerHTML) convertiria un mensaje con <script>
+-- en una XSS almacenada. El consumidor debe partir el string por estos
+-- marcadores y renderizar cada segmento como texto, envolviendo con su
+-- propio elemento de resaltado.
 
 SELECT
   id,
@@ -27,7 +35,7 @@ SELECT
     'spanish',
     body,
     websearch_to_tsquery('spanish', $1::text),
-    'StartSel=<mark>, StopSel=</mark>, MaxFragments=2, MaxWords=15, MinWords=5'
+    'StartSel={{HL}}, StopSel={{/HL}}, MaxFragments=2, MaxWords=15, MinWords=5'
   ) AS highlighted_body,
   ts_rank(search_vector, websearch_to_tsquery('spanish', $1::text)) AS rank
 FROM rw_messages

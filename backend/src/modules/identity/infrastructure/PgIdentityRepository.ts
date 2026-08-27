@@ -86,6 +86,15 @@ export class PgIdentityRepository implements IdentityRepository {
     return rows[0] ? toProfile(rows[0]) : null;
   }
 
+  async findProfilesByIds(client: Queryable, ids: string[]): Promise<UserProfile[]> {
+    if (ids.length === 0) return [];
+    const { rows } = await client.query<ProfileRow>(
+      `SELECT id, full_name, job_title, locale, is_active FROM rw_v_identity_profiles WHERE id = ANY($1::uuid[])`,
+      [ids],
+    );
+    return rows.map(toProfile);
+  }
+
   async insertRefreshToken(
     client: Queryable,
     input: { userId: string; tokenHash: string; familyId: string; rotatedFrom: string | null; expiresAt: Date },
