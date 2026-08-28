@@ -47,12 +47,7 @@ Edita `.env` y coloca tu `OPENAI_API_KEY`. Los demás valores por defecto sirven
 docker compose up --build
 ```
 
-En otra terminal, crea el esquema y carga el corpus:
-
-```bash
-make migrate
-make seed
-```
+Con eso alcanza: el servicio `migrate` aplica el esquema y carga el corpus automáticamente antes de que `backend` arranque (es una dependencia declarada en `docker-compose.yml`, no un paso manual). `make migrate` y `make seed` quedan disponibles para volver a ejecutarlos sobre un stack ya levantado, por ejemplo después de agregar una migración nueva.
 
 Listo:
 

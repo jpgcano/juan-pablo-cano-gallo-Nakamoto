@@ -48,6 +48,7 @@ export interface RecordQueryInput {
   tokensIn: number;
   tokensOut: number;
   costUsd: number;
+  guardianReason?: string;
 }
 
 export interface CitationInput {

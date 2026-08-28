@@ -59,6 +59,7 @@
     "placeholder": "Pregúntale algo al copiloto…",
     "ask": "Preguntar",
     "thinking": "Pensando…",
+    "error": "No se pudo obtener respuesta",
     "citationsTitle": "Fuentes",
     "noContext": "No tengo contexto suficiente en tus conversaciones para responder eso.",
     "outOfScope": "Esa pregunta no está relacionada con tus conversaciones en Riwi.",

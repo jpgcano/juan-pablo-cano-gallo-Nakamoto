@@ -2,6 +2,7 @@ import { NotFoundError } from '../../../shared/errors/AppError.js';
 import type { UnitOfWork } from '../../../shared/postgres/UnitOfWork.js';
 import type { AiProvider, CopilotOutcome, CopilotRepository } from '../domain/ports.js';
 import { buildUserPrompt } from './buildUserPrompt.js';
+import { guardQuestion, guardResponse } from '../domain/ResponseGuardian.js';
 
 export interface Citation {
   messageId: string;
@@ -40,6 +41,22 @@ export class AskCopilotUseCase {
 
   async execute(actorId: string, question: string): Promise<AskCopilotResult> {
     return this.uow.runAs(actorId, async (client) => {
+      const questionGuard = guardQuestion(question);
+      if (!questionGuard.allowed) {
+        await this.repository.recordQuery(client, {
+          userId: actorId,
+          question,
+          answer: 'GUARD_BLOCKED',
+          outcome: 'no_context',
+          promptVersion: this.promptVersion,
+          tokensIn: 0,
+          tokensOut: 0,
+          costUsd: 0,
+          guardianReason: questionGuard.reason,
+        });
+        return { outcome: 'no_context', answer: null, citations: [] };
+      }
+
       // El copiloto conoce al usuario porque el SERVIDOR lo arma desde el
       // token (actorId), nunca porque el cliente lo declare en el body.
       const profile = await this.repository.getProfile(client, actorId);
@@ -85,6 +102,22 @@ export class AskCopilotUseCase {
       // exacto cuando la pregunta no tiene relacion con la plataforma.
       const isOutOfScope = chatResult.content.trim() === 'OUT_OF_SCOPE';
       const costUsd = chatResult.tokensIn * this.pricing.inputPerToken + chatResult.tokensOut * this.pricing.outputPerToken;
+
+      const responseGuard = isOutOfScope ? { allowed: true } : guardResponse(chatResult.content, relevant);
+      if (!responseGuard.allowed) {
+        await this.repository.recordQuery(client, {
+          userId: actorId,
+          question,
+          answer: 'GUARD_BLOCKED',
+          outcome: 'no_context',
+          promptVersion: this.promptVersion,
+          tokensIn: chatResult.tokensIn,
+          tokensOut: chatResult.tokensOut,
+          costUsd,
+          guardianReason: responseGuard.reason,
+        });
+        return { outcome: 'no_context', answer: null, citations: [] };
+      }
 
       const record = await this.repository.recordQuery(client, {
         userId: actorId,

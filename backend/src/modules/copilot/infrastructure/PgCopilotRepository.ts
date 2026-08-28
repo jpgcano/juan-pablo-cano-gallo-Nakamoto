@@ -67,8 +67,8 @@ export class PgCopilotRepository implements CopilotRepository {
 
   async recordQuery(client: Queryable, input: RecordQueryInput): Promise<{ id: string }> {
     const { rows } = await client.query<{ id: string }>(
-      `INSERT INTO rw_copilot_queries (user_id, question, answer, outcome, prompt_version, tokens_in, tokens_out, cost_usd)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO rw_copilot_queries (user_id, question, answer, outcome, prompt_version, tokens_in, tokens_out, cost_usd, guardian_reason)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id`,
       [
         input.userId,
@@ -79,6 +79,7 @@ export class PgCopilotRepository implements CopilotRepository {
         input.tokensIn,
         input.tokensOut,
         input.costUsd,
+        input.guardianReason ?? null,
       ],
     );
     const row = rows[0];

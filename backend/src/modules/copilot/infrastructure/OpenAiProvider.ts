@@ -5,7 +5,7 @@ export class OpenAiProvider implements AiProvider {
   private readonly client: OpenAI;
 
   constructor(apiKey: string, private readonly chatModel: string, private readonly embeddingModel: string) {
-    this.client = new OpenAI({ apiKey });
+    this.client = new OpenAI({ apiKey, timeout: 30_000, maxRetries: 0 });
   }
 
   async embed(text: string): Promise<number[]> {

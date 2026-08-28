@@ -8,6 +8,7 @@ interface Exchange {
   id: string;
   question: string;
   response: AskCopilotResponse | null;
+  error?: string;
 }
 
 interface Props {
@@ -34,6 +35,9 @@ export function CopilotPanel({ onGoToMessage }: Props) {
       onSuccess: (response) => {
         setExchanges((prev) => prev.map((ex) => (ex.id === id ? { ...ex, response } : ex)));
       },
+      onError: (error) => {
+        setExchanges((prev) => prev.map((ex) => (ex.id === id ? { ...ex, error: error instanceof Error ? error.message : t('copilot.error') } : ex)));
+      },
     });
   }
 
@@ -55,7 +59,9 @@ export function CopilotPanel({ onGoToMessage }: Props) {
               <div key={exchange.id} className="space-y-1.5">
                 <p className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white">{exchange.question}</p>
 
-                {!exchange.response ? (
+                {exchange.error ? (
+                  <p className="rounded-lg bg-red-50 px-3 py-1.5 text-sm text-red-800">{t('copilot.error')}: {exchange.error}</p>
+                ) : !exchange.response ? (
                   <p className="text-sm italic text-slate-400">{t('copilot.thinking')}</p>
                 ) : (
                   <CopilotAnswer response={exchange.response} onGoToMessage={onGoToMessage} />

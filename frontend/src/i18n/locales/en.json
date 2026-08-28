@@ -59,6 +59,7 @@
     "placeholder": "Ask the copilot something…",
     "ask": "Ask",
     "thinking": "Thinking…",
+    "error": "Unable to get a response",
     "citationsTitle": "Sources",
     "noContext": "I don't have enough context in your conversations to answer that.",
     "outOfScope": "That question isn't related to your conversations in Riwi.",
